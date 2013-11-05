@@ -37,22 +37,21 @@ exports.getVideoInfo = function(videoId,callback)
 		video.sources = decodeStreamMap(video.url_encoded_fmt_stream_map);
 
 		video.getSource = function(type, quality) {
-	        var exact, key, lowest, source, _ref;
-	        lowest = null;
-	        exact = null;
-	        _ref = this.sources;
-	        for (key in _ref) {
-	          source = _ref[key];
-	          if (source.type.match(type)) {
-	            if (source.quality.match(quality)) {
-	              exact = source;
-	            } else {
-	              lowest = source;
-	            }
-	          }
-	        }
-	        return exact || lowest;
-	      };
-      	return callback(video);
+			var lowest = null;
+			var exact = null;
+			var _ref = this.sources;
+			for (var key in _ref) {
+				var source = _ref[key];
+				if (source.type.match(type)) {
+					if (source.quality.match(quality)) {
+						exact = source;
+					} else {
+						lowest = source;
+					}
+				}
+			}
+			return exact || lowest;
+		};
+		return callback(video);
 	});
 };

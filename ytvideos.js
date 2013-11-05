@@ -32,7 +32,7 @@ exports.getVideoInfo = function(videoId,callback)
 	http.get("http://www.youtube.com/get_video_info?video_id=" + videoId,function(res)
 	{
 		var video = decodeQueryString(res);
-		if(video==="fail") callback(video);
+		if(video.status==="fail") callback(video);
 
 		video.sources = decodeStreamMap(video.url_encoded_fmt_stream_map);
 

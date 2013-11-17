@@ -61,7 +61,6 @@ var getItems = function(data,cb)
 			var vInfo = links.filter(function(elm){
 				return elm.id === data.items[i].video.id;
 			})[0];
-			//console.log(vInfo);
 
 			newItems.push({
 				item: data.items[i],

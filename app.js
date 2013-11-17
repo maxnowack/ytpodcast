@@ -1,12 +1,10 @@
 var express = require('express');
 var app = express();
-var RSS = require('rss');
+var Podcast = require('../node-podcast/lib/podcast.js');
 var yt = require('youtube-feeds');
 var ytvideos = require('./ytvideos.js');
 var merge = require('object-mapper').merge;
 
-var generateFeed = function(err,data){
-	console.log(data);
 var videoFormat = "video/mp4";
 var videoQuality = "medium";
 
@@ -29,6 +27,66 @@ var podcastItemsMap = {
 	"item.author":"itunesAuthor",
 	"item.video.duration":"itunesDuration"
 };
+
+var getLink = function(items,pos,links,cb)
+{
+	if(pos<items.length)
+	{
+		ytvideos.getVideoInfo(items[pos].video.id,function(videoInfo){
+			links.push({
+				id: items[pos].video.id,
+				info: videoInfo
+			});
+			getLink(items,++pos,links,cb);
+		});
+	}
+	else
+	{
+		cb(links);
+	}
+};
+var getVideoLinks = function(items,cb)
+{
+	getLink(items,0,[],cb);
+};
+var getItems = function(data,cb)
+{
+	getVideoLinks(data.items,function(links)
+	{
+		var newItems = [];
+
+		for(var i=0; i<data.items.length;i++)
+		{
+			var vInfo = links.filter(function(elm){
+				return elm.id === data.items[i].video.id;
+			})[0];
+			//console.log(vInfo);
+
+			newItems.push({
+				item: data.items[i],
+				video: vInfo.info.getSource(videoFormat,videoQuality)
+			});
+		}
+		
+		var retVal = new Array();
+		for(var i=0; i<newItems.length;i++)
+		{
+			retVal.push(merge(newItems[i],{},podcastItemsMap));
+		}
+
+		cb(retVal);
+	});
+};
+
+var generateFeed = function(type,data,res){
+	var options = merge(data,{},podcastOptionsMap);
+	options.site_url = "http://youtube.com/playlist?list=" + data.id;
+
+	getItems(data,function(items)
+	{
+		console.log("loaded feed " + data.id + " with " + items.length + " items");
+		res.send(new Podcast(options,items).xml());
+	});
 };
 
 app.get("/playlist/:id",function(req,res){

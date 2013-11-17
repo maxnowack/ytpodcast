@@ -89,7 +89,23 @@ var generateFeed = function(type,data,res){
 	});
 };
 
+var bootstrap = function(req)
+{
+	if(typeof(req.query.quality)!="undefined")
+	{
+		switch(req.query.quality)
+		{
+			case "hd720":
+			case "medium":
+			case "small":
+				videoQuality = req.query.quality;
+				break;
+		}
+	}
+};
+
 app.get("/playlist/:id",function(req,res){
+	bootstrap(req);
 	yt.feeds.playlist(req.params.id,{orderby:"published",'max-results':50},function(err,data){
 		if(!err) generateFeed('playlist',data,res);
 		else res.send('no playlist with id "' + req.params.id + '"');
@@ -97,6 +113,7 @@ app.get("/playlist/:id",function(req,res){
 });
 
 app.get("/channel/:id",function(req,res){
+	bootstrap(req);
 	yt.user.uploads(req.params.id,function(err,data){
 		if(!err) generateFeed('channel',data,res);
 		else res.send('no channel with id "' + req.params.id + '"');

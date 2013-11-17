@@ -6,7 +6,7 @@ var ytvideos = require('./ytvideos.js');
 var merge = require('object-mapper').merge;
 
 var videoFormat = "video/mp4";
-var videoQuality = "medium";
+var videoQuality = "hd720";
 
 var podcastOptionsMap = {
 	"title":"title",

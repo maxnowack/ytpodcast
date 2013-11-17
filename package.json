@@ -1,0 +1,29 @@
+{
+    "name": "ytpodcast",
+    "version": "0.0.2",
+    "description": "Podcast RSS feed generator for Youtube channels and playlists written in javascript",
+    "homepage": "http://github.com/maxnowack/ytpodcast",
+    "author": "Max Nowack <max@unsou.de>",
+    "contributors": [
+        "Max Nowack <max@unsou.de>"
+    ],
+    "repository":
+    {
+        "type": "git",
+        "url": "http://github.com/maxnowack/ytpodcast"
+    },
+    "bugs":
+    {
+        "mail": "max@unsou.de",
+        "url": "http://github.com/maxnowack/ytpodcast/issues"
+    },
+    "dependencies":
+    {
+        "express":"~3.4.4",
+        "podcast":"~0.1.0",
+        "youtube-feeds":"~2.2.1",
+        "object-mapper":"~0.0.7"
+    },
+    "main": "app.js",
+    "engines": { "node": ">=0.4.0" }
+}

@@ -1,3 +1,4 @@
+var http = require('http');
 var decodeQueryString = function(queryString) {
     var key, keyValPair, keyValPairs, r, val, _i, _len;
     r = {};
@@ -17,7 +18,7 @@ var decodeStreamMap = function(url_encoded_fmt_stream_map) {
     _ref = url_encoded_fmt_stream_map.split(",");
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       urlEncodedStream = _ref[_i];
-      stream = YoutubeVideo.decodeQueryString(urlEncodedStream);
+      stream = decodeQueryString(urlEncodedStream);
       type = stream.type.split(";")[0];
       quality = stream.quality.split(",")[0];
       stream.original_url = stream.url;
@@ -31,27 +32,35 @@ exports.getVideoInfo = function(videoId,callback)
 {
 	http.get("http://www.youtube.com/get_video_info?video_id=" + videoId,function(res)
 	{
-		var video = decodeQueryString(res);
-		if(video.status==="fail") callback(video);
+		var str = '';
+		res.on('data',function(d){
+			str += d;
+		});
 
-		video.sources = decodeStreamMap(video.url_encoded_fmt_stream_map);
+		res.on('end',function(){
+			//console.log(str);
+			var video = decodeQueryString(str);
+			if(video.status==="fail") callback(video);
 
-		video.getSource = function(type, quality) {
-			var lowest = null;
-			var exact = null;
-			var _ref = this.sources;
-			for (var key in _ref) {
-				var source = _ref[key];
-				if (source.type.match(type)) {
-					if (source.quality.match(quality)) {
-						exact = source;
-					} else {
-						lowest = source;
+			video.sources = decodeStreamMap(video.url_encoded_fmt_stream_map);
+
+			video.getSource = function(type, quality) {
+				var lowest = null;
+				var exact = null;
+				var _ref = this.sources;
+				for (var key in _ref) {
+					var source = _ref[key];
+					if (source.type.match(type)) {
+						if (source.quality.match(quality)) {
+							exact = source;
+						} else {
+							lowest = source;
+						}
 					}
 				}
-			}
-			return exact || lowest;
-		};
-		return callback(video);
+				return exact || lowest;
+			};
+			return callback(video);
+		});
 	});
 };

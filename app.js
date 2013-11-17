@@ -1,6 +1,6 @@
 var express = require('express');
 var app = express();
-var Podcast = require('../node-podcast/lib/podcast.js');
+var Podcast = require('podcast');
 var yt = require('youtube-feeds');
 var ytvideos = require('./ytvideos.js');
 var merge = require('object-mapper').merge;

@@ -23,7 +23,6 @@ var podcastItemsMap = {
 	"item.id":"guid",
 	"item.video.description":"description",
 	"video.url":"enclosure.url",
-	"video.type":"enclosure.mime",
 	"item.video.uploaded":"date",
 	"item.author":"itunesAuthor",
 	"item.video.duration":"itunesDuration"
@@ -71,7 +70,9 @@ var getItems = function(data,cb)
 		var retVal = new Array();
 		for(var i=0; i<newItems.length;i++)
 		{
-			retVal.push(merge(newItems[i],{},podcastItemsMap));
+			var item = merge(newItems[i],{},podcastItemsMap);
+			item.enclosure.mime = videoFormat;
+			retVal.push(item);
 		}
 
 		cb(retVal);

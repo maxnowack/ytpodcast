@@ -38,10 +38,8 @@ exports.getVideoInfo = function(videoId,callback)
 		});
 
 		res.on('end',function(){
-			//console.log(str);
 			var video = decodeQueryString(str);
 			if(video.status==="fail") callback(video);
-
 			video.sources = decodeStreamMap(video.url_encoded_fmt_stream_map);
 
 			video.getSource = function(type, quality) {

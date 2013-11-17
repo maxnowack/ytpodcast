@@ -61,10 +61,13 @@ var getItems = function(data,cb)
 				return elm.id === data.items[i].video.id;
 			})[0];
 
-			newItems.push({
-				item: data.items[i],
-				video: vInfo.info.getSource(videoFormat,videoQuality)
-			});
+			if(vInfo.info.status=="ok")
+			{
+				newItems.push({
+					item: data.items[i],
+					video: vInfo.info.getSource(videoFormat,videoQuality)
+				});
+			}
 		}
 		
 		var retVal = new Array();

@@ -23,6 +23,7 @@ var podcastItemsMap = {
 	"item.id":"guid",
 	"item.video.description":"description",
 	"video.url":"enclosure.url",
+	"video.type":"enclosure.mime",
 	"item.video.uploaded":"date",
 	"item.author":"itunesAuthor",
 	"item.video.duration":"itunesDuration"

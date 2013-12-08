@@ -103,7 +103,7 @@ var generateFeed = function(type,data,id,res){
 	});
 };
 
-var bootstrap = function(req)
+var bootstrap = function(req,res)
 {
 	if(typeof(req.query.quality)!="undefined")
 	{
@@ -116,6 +116,8 @@ var bootstrap = function(req)
 				break;
 		}
 	}
+	res.set("Content-Type", "application/rss+xml");
+};
 };
 
 app.get("/playlist/:id",function(req,res){

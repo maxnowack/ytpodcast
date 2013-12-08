@@ -32,9 +32,10 @@ var getLink = function(items,pos,links,cb)
 {
 	if(pos<items.length)
 	{
-		ytvideos.getVideoInfo(items[pos].video.id,function(videoInfo){
+		var id = typeof(items[pos].video)=="undefined" ? items[pos].id : items[pos].video.id;
+		ytvideos.getVideoInfo(id,function(videoInfo){
 			links.push({
-				id: items[pos].video.id,
+				id: id,
 				info: videoInfo
 			});
 			getLink(items,++pos,links,cb);
@@ -58,7 +59,7 @@ var getItems = function(data,cb)
 		for(var i=0; i<data.items.length;i++)
 		{
 			var vInfo = links.filter(function(elm){
-				return elm.id === data.items[i].video.id;
+				return elm.id === (typeof(data.items[i].video)=="undefined" ? data.items[i].id : data.items[i].video.id);
 			})[0];
 
 			if(vInfo.info.status=="ok")
@@ -82,13 +83,22 @@ var getItems = function(data,cb)
 	});
 };
 
-var generateFeed = function(type,data,res){
+var generateFeed = function(type,data,id,res){
 	var options = merge(data,{},podcastOptionsMap);
-	options.site_url = "http://youtube.com/playlist?list=" + data.id;
+
+	switch(type)
+	{
+		case "channel":
+			options.site_url = "http://youtube.com/user/" + id + "/videos";
+			break;
+		case "playlist":
+			options.site_url = "http://youtube.com/playlist?list=" + id;
+			break;
+	}
 
 	getItems(data,function(items)
 	{
-		console.log("loaded feed " + data.id + " with " + items.length + " items");
+		console.log("loaded feed " + id + " with " + items.length + " items");
 		res.send(new Podcast(options,items).xml());
 	});
 };
@@ -111,15 +121,15 @@ var bootstrap = function(req)
 app.get("/playlist/:id",function(req,res){
 	bootstrap(req);
 	yt.feeds.playlist(req.params.id,{orderby:"published",'max-results':50},function(err,data){
-		if(!err) generateFeed('playlist',data,res);
+		if(!err) generateFeed('playlist',data,req.params.id,res);
 		else res.send('no playlist with id "' + req.params.id + '"');
 	});
 });
 
 app.get("/channel/:id",function(req,res){
 	bootstrap(req);
-	yt.user.uploads(req.params.id,function(err,data){
-		if(!err) generateFeed('channel',data,res);
+	yt.user(req.params.id).uploads({orderby:"published",'max-results':50},function(err,data){
+		if(!err) generateFeed('channel',data,req.params.id,res);
 		else res.send('no channel with id "' + req.params.id + '"');
 	});
 });

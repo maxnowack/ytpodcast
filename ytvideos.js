@@ -39,7 +39,7 @@ exports.getVideoInfo = function(videoId,callback)
 
 		res.on('end',function(){
 			var video = decodeQueryString(str);
-			if(video.status==="fail") callback(video);
+			if(video.status==="fail") return callback(video);
 			video.sources = decodeStreamMap(video.url_encoded_fmt_stream_map);
 
 			video.getSource = function(type, quality) {

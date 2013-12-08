@@ -118,21 +118,99 @@ var bootstrap = function(req,res)
 	}
 	res.set("Content-Type", "application/rss+xml");
 };
+
+var getAllItems = function(type,id,cb)
+{
+	var total = 0;
+	var requested = 50;
+	var fetched = 0;
+	var items = [];
+	var options = {
+		'orderby':'published',
+		'max-results':50,
+		'start-index': 1
+	};
+	switch(type)
+	{
+		case "channel":
+			yt.user(id).uploads(options,saveData);
+			break;
+		case "playlist":
+			yt.feeds.playlist(id,options,saveData);
+			break;
+	}
+
+	function loop() 
+	{
+		do
+		{
+			var options = {
+				'orderby':'published',
+				'max-results':50,
+				'start-index': requested+1//(total>0 ? requested : 0)+1;
+			};
+
+			switch(type)
+			{
+				case "channel":
+					yt.user(id).uploads(options,saveData);
+					break;
+				case "playlist":
+					yt.feeds.playlist(id,options,saveData);
+					break;
+			}
+			requested += requested>0 ? (total-requested>=50 ? 50 : total-requested) : 50;
+		}while(requested<total);
+	}
+
+	function saveData(err,data)
+	{
+		if(!err)
+		{
+			items.push(data);
+			var oldTotal = total;
+			total = data.totalItems;
+			fetched += (total-(data.startIndex-1) >= 50 ? 50 : total-(data.startIndex-1));
+			if(oldTotal==0) loop();
+			complete();
+		}
+		else
+		{
+			console.log(err);
+		}
+	}
+
+	function complete()
+	{
+		if(total<=fetched) cb(mergeItems(items));
+	}
+};
+
+var mergeItems = function(items)
+{
+	var retVal = items[0];
+	for(var i=1;i<items.length;i++)
+	{
+		for(var j=0;j<items[i].items.length;j++)
+		{
+			retVal.items.push(items[i].items[j]);
+		}
+	}
+	console.log(retVal.items.length);
+	return retVal;
 };
 
 app.get("/playlist/:id",function(req,res){
-	bootstrap(req);
-	yt.feeds.playlist(req.params.id,{orderby:"published",'max-results':50},function(err,data){
-		if(!err) generateFeed('playlist',data,req.params.id,res);
-		else res.send('no playlist with id "' + req.params.id + '"');
+	bootstrap(req,res);
+	getAllItems("playlist",req.params.id,function(data){
+		generateFeed('playlist',data,req.params.id,res);
 	});
 });
 
 app.get("/channel/:id",function(req,res){
-	bootstrap(req);
-	yt.user(req.params.id).uploads({orderby:"published",'max-results':50},function(err,data){
-		if(!err) generateFeed('channel',data,req.params.id,res);
-		else res.send('no channel with id "' + req.params.id + '"');
+	bootstrap(req,res);
+	getAllItems("channel",req.params.id,function(data){
+		generateFeed('channel',data,req.params.id,res);
 	});
 });
 

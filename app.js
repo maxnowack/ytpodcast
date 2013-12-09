@@ -8,7 +8,10 @@ var merge = require('object-mapper').merge;
 var videoFormat = "video/mp4";
 var videoQuality = "hd720";
 
-var podcastOptionsMap = {
+var podcastOptionsMap = [];
+var podcastItemsMap = [];
+
+podcastOptionsMap["playlist"] = {
 	"title":"title",
 	"description":"description",
 	"author":"itunesAuthor",
@@ -17,7 +20,7 @@ var podcastOptionsMap = {
 	"thumbnail.hqDefault":"image_url"
 
 };
-var podcastItemsMap = {
+podcastItemsMap["playlist"] = {
 	"item.video.title":"title",
 	"item.video.player.default":"link",
 	"item.id":"guid",
@@ -26,6 +29,26 @@ var podcastItemsMap = {
 	"item.video.uploaded":"date",
 	"item.author":"itunesAuthor",
 	"item.video.duration":"itunesDuration"
+};
+
+podcastOptionsMap["channel"] = {
+	"title":"title",
+	"description":"description",
+	"author":"itunesAuthor",
+	"author":"author",
+	"thumbnail.hqDefault":"itunesImage",
+	"thumbnail.hqDefault":"image_url"
+
+};
+podcastItemsMap["channel"] = {
+	"item.title":"title",
+	"item.player.default":"link",
+	"item.id":"guid",
+	"item.description":"description",
+	"video.url":"enclosure.url",
+	"item.uploaded":"date",
+	"item.uploader":"itunesAuthor",
+	"item.duration":"itunesDuration"
 };
 
 var getLink = function(items,pos,links,cb)
@@ -50,7 +73,7 @@ var getVideoLinks = function(items,cb)
 {
 	getLink(items,0,[],cb);
 };
-var getItems = function(data,cb)
+var getItems = function(data,cb,type)
 {
 	getVideoLinks(data.items,function(links)
 	{
@@ -74,7 +97,7 @@ var getItems = function(data,cb)
 		var retVal = new Array();
 		for(var i=0; i<newItems.length;i++)
 		{
-			var item = merge(newItems[i],{},podcastItemsMap);
+			var item = merge(newItems[i],{},podcastItemsMap[type]);
 			item.enclosure.mime = videoFormat;
 			retVal.push(item);
 		}
@@ -84,7 +107,7 @@ var getItems = function(data,cb)
 };
 
 var generateFeed = function(type,data,id,res){
-	var options = merge(data,{},podcastOptionsMap);
+	var options = merge(data,{},podcastOptionsMap[type]);
 
 	switch(type)
 	{
@@ -100,7 +123,7 @@ var generateFeed = function(type,data,id,res){
 	{
 		console.log("loaded feed " + id + " with " + items.length + " items");
 		res.send(new Podcast(options,items).xml());
-	});
+	},type);
 };
 
 var bootstrap = function(req,res)
@@ -125,6 +148,7 @@ var getAllItems = function(type,id,cb)
 	var requested = 50;
 	var fetched = 0;
 	var items = [];
+	var profile;
 	var options = {
 		'orderby':'published',
 		'max-results':50,
@@ -133,7 +157,17 @@ var getAllItems = function(type,id,cb)
 	switch(type)
 	{
 		case "channel":
-			yt.user(id).uploads(options,saveData);
+			yt.user(id).profile(function(err,data){
+				if(!err) 
+				{
+					profile = data;
+					yt.user(id).uploads(options,saveData);
+				}
+				else
+				{
+					console.log(err);
+				}
+			})
 			break;
 		case "playlist":
 			yt.feeds.playlist(id,options,saveData);
@@ -182,7 +216,18 @@ var getAllItems = function(type,id,cb)
 
 	function complete()
 	{
-		if(total<=fetched) cb(mergeItems(items));
+		if(total<=fetched) 
+		{
+			if(profile)
+			{
+				items[0].title = profile.title.$t;
+				items[0].description = profile.summary.$t;
+				items[0].author = profile.author[0].name.$t;
+				items[0].thumbnail = {};
+				items[0].thumbnail.hqDefault = profile.media$thumbnail.url;
+			}
+			cb(mergeItems(items));
+		}
 	}
 };
 
@@ -196,7 +241,6 @@ var mergeItems = function(items)
 			retVal.items.push(items[i].items[j]);
 		}
 	}
-	console.log(retVal.items.length);
 	return retVal;
 };
 

@@ -118,11 +118,11 @@ var generateFeed = function(type,data,id,res){
 			options.site_url = "http://youtube.com/playlist?list=" + id;
 			break;
 	}
-
+	var start = new Date();
 	getItems(data,function(items)
 	{
 		res.send(new Podcast(options,items.sort(sortItems)).xml());
-		console.log("loaded feed " + id + " with " + items.length + " items");
+		console.log("loaded feed " + id + " with " + items.length + " items in " + ((new Date()-start)/1000));
 	},type);
 };
 

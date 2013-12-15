@@ -51,26 +51,39 @@ podcastItemsMap["channel"] = {
 	"item.duration":"itunesDuration"
 };
 
-var getLink = function(items,pos,links,cb)
-{
-	if(pos<items.length)
-	{
-		var id = typeof(items[pos].video)=="undefined" ? items[pos].id : items[pos].video.id;
-		ytvideos.getVideoInfo(id,function(videoInfo){
-			links.push({
-				id: id,
-				info: videoInfo
-			});
-			getLink(items,++pos,links,cb);
-		});
-	}
-	else
-	{
-		cb(links);
-	}
-};
 var getVideoLinks = function(items,cb)
 {
+	var queue = items.slice();
+	var links = [];
+	var complete = false;
+	var getLink = function()
+	{
+		if(queue.length>0)
+		{
+			var current = queue.shift();
+			var id = typeof(current.video)=="undefined" ? current.id : current.video.id;
+			ytvideos.getVideoInfo(id,function(videoInfo){
+				links.push({
+					id: id,
+					info: videoInfo
+				});
+				getLink();
+			});
+		}
+		else
+		{
+			if(!complete)
+			{
+				complete = true;
+				cb(links);
+			}
+		}
+	};
+
+	for(var i=0; i<100; i++)
+	{
+		getLink();
+	}
 	getLink(items,0,[],cb);
 };
 var getItems = function(data,cb,type)

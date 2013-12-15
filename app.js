@@ -98,7 +98,7 @@ var getItems = function(data,cb,type)
 				return elm.id === (typeof(data.items[i].video)=="undefined" ? data.items[i].id : data.items[i].video.id);
 			})[0];
 
-			if(vInfo.info.status=="ok")
+			if(typeof(vInfo)!="undefined" && vInfo.info.status=="ok")
 			{
 				newItems.push({
 					item: data.items[i],

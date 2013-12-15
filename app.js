@@ -121,9 +121,17 @@ var generateFeed = function(type,data,id,res){
 
 	getItems(data,function(items)
 	{
+		res.send(new Podcast(options,items.sort(sortItems)).xml());
 		console.log("loaded feed " + id + " with " + items.length + " items");
-		res.send(new Podcast(options,items).xml());
 	},type);
+};
+
+var sortItems = function(a,b)
+{
+	var aDate = new Date(a.date);
+    var bDate = new Date(b.date);
+
+    return aDate>bDate ? -1 : aDate<bDate ? 1 : 0;
 };
 
 var bootstrap = function(req,res)
@@ -150,7 +158,7 @@ var getAllItems = function(type,id,cb)
 	var items = [];
 	var profile;
 	var options = {
-		'orderby':'published',
+		//'orderby':'published',
 		'max-results':50,
 		'start-index': 1
 	};
@@ -178,12 +186,6 @@ var getAllItems = function(type,id,cb)
 	{
 		do
 		{
-			var options = {
-				'orderby':'published',
-				'max-results':50,
-				'start-index': requested+1//(total>0 ? requested : 0)+1;
-			};
-
 			switch(type)
 			{
 				case "channel":

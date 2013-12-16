@@ -171,7 +171,6 @@ var getAllItems = function(type,id,cb)
 	var items = [];
 	var profile;
 	var options = {
-		//'orderby':'published',
 		'max-results':50,
 		'start-index': 1
 	};
@@ -199,6 +198,10 @@ var getAllItems = function(type,id,cb)
 	{
 		do
 		{
+			var options = {
+				'max-results':50,
+				'start-index': requested+1
+			};
 			switch(type)
 			{
 				case "channel":

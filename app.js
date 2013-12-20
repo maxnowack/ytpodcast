@@ -255,7 +255,7 @@ var mergeItems = function(items)
 	var retVal = items[0];
 	for(var i=1;i<items.length;i++)
 	{
-		for(var j=0;j<items[i].items.length;j++)
+		for(var j=0;j<(typeof(items[i].items)=="undefined" ? 0 : items[i].items.length) ;j++)
 		{
 			retVal.items.push(items[i].items[j]);
 		}

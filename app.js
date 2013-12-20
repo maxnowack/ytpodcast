@@ -55,11 +55,12 @@ var getVideoLinks = function(items,cb)
 {
 	var queue = items.slice();
 	var links = [];
-	var complete = false;
+	var running = 0;
 	var getLink = function()
 	{
 		if(queue.length>0)
 		{
+			running++;
 			var current = queue.shift();
 			var id = typeof(current.video)=="undefined" ? current.id : current.video.id;
 			ytvideos.getVideoInfo(id,function(videoInfo){
@@ -67,14 +68,14 @@ var getVideoLinks = function(items,cb)
 					id: id,
 					info: videoInfo
 				});
+				running--;
 				getLink();
 			});
 		}
 		else
 		{
-			if(!complete)
+			if(running<=0)
 			{
-				complete = true;
 				cb(links);
 			}
 		}
